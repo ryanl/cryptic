@@ -8,12 +8,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import javax.annotation.Nullable;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
+/** Represents a map from word -> synonyms of that word. */
 public final class Thesaurus {
-    private final Map<String, List<String>> words = new HashMap<>();
+    
+    private final ImmutableMap<String, ImmutableList<String>> words;
 
     public static Thesaurus loadFromFile(File file) throws IOException {
         try (InputStream inputStream = new FileInputStream(file);
@@ -32,23 +37,27 @@ public final class Thesaurus {
         }
     }
 
-    public Thesaurus(List<List<String>> synonymSets) {
+    public Thesaurus(List<? extends List<String>> synonymSets) {
         // TODO: remove spaces
-        Map<String, List<String>> words = new HashMap<>();
+        ImmutableMap.Builder<String, ImmutableList<String>> builder = ImmutableMap.builder();
+                
         for (List<String> synonymSet : synonymSets) {
+            // Note that this will include the word as a synonym of itself, which may be undesirable.
+            ImmutableList<String> synonyms = ImmutableList.copyOf(synonymSet);
             for (String synonym : synonymSet) {
-                if (!words.containsKey(synonym)) {
-                    words.put(synonym, new ArrayList<String>());
-                }
-                for (String synonymB : synonymSet) {
-                    words.get(synonym).add(synonymB);
-                }
+                builder.put(synonym, synonyms);
             }
         }
-        // TODO: Use unmodifiable lists.
+        words = builder.build();
     }
 
+    /** Returns all synonyms of the given word, including the word itself. */
     public List<String> getSynonyms(String word) {
-        return words.get(word);
+        @Nullable List<String> synonyms = words.get(word);
+        if (synonyms != null) {
+            return synonyms;
+        } else {
+            return ImmutableList.of(word);
+        }
     }
 }

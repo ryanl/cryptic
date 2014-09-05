@@ -3,11 +3,10 @@ package com.ryanlothian.cryptic;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Solver for cryptic crossword clues.
@@ -22,30 +21,9 @@ public final class CrypticSolver {
         this.grammar = checkNotNull(grammar);
     }
 	
-	public static final class ScoredString {
-		public final float score;
-		public final String string;
-		
-		public ScoredString(float score, String string) {
-			this.score = score;
-			this.string = string;
-		}
-	}
-	
+    /** Returns a set of possible solutions to a traditional non-cryptic crossword clue. */
 	private Set<String> solveNonCryptic(List<String> definition) {
-	    Set<String> solutions = new HashSet<>();
-	    for (String s : thesaurus.getSynonyms(join("", definition))) {
-	        solutions.add(s);
-	    }
-	    return solutions;
-	}
-	
-	
-	private void solveCryptic(List<String> clue) {
-        for (String word : clue) {
-            this.thesaurus.getSynonyms(word);
-        }
-	    for (Rule rule : )
+	    return ImmutableSet.copyOf(thesaurus.getSynonyms(join("", definition)));
 	}
 	
 	public void solve(String problem) {
@@ -61,6 +39,17 @@ public final class CrypticSolver {
 		}
 	}
 	
+	/** Solve the cryptic part of the clue. */   
+    private Set<String> solveCryptic(List<String> clue) {
+        for (String word : clue) {
+            this.thesaurus.getSynonyms(word);
+        }
+        // TODO: Implement this
+        // for (Rule rule : )
+        return ImmutableSet.of();
+    }
+    
+    /** Returns lower case words from the given string. Punctuation and non-alphabet characters are ignored. */ 
 	private static List<String> splitIntoWordsIgnoringPunctuation(String line) {
         List<String> words = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
@@ -79,6 +68,7 @@ public final class CrypticSolver {
         return words;
     }
 
+	/** Equivalent to separator.join(parts) in Python. */ 
     public static String join(String separator, List<String> parts) {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
@@ -91,5 +81,16 @@ public final class CrypticSolver {
         }
         return sb.toString();
     }
+    
+    private static final class ScoredString {
+        public final float score;
+        public final String string;
+        
+        public ScoredString(float score, String string) {
+            this.score = score;
+            this.string = string;
+        }
+    }
+
     
 }
