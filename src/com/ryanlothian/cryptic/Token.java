@@ -12,11 +12,13 @@ import com.google.common.collect.ImmutableList;
 
 @Immutable
 public final class Token {
+    
     public enum TokenType {
         LITERAL,
         PLACEHOLDER,
         FUNCTION
     }
+    
     public enum FunctionType {
         ANAGRAM,
         CONCAT
@@ -41,7 +43,6 @@ public final class Token {
     public static Token function(String functionName, Token... children) {
         return new Token(functionName, TokenType.FUNCTION, Arrays.asList(children));
     }
-    
     
     private Token(String literal, Token.TokenType type, List<Token> children) {
         checkNotNull(literal);
@@ -79,4 +80,5 @@ public final class Token {
             return literal + "(" + children + ")";
         }
     }
+    
 }

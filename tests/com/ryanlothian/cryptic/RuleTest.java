@@ -11,13 +11,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-public class RuleTest {
+/**
+ * Tests for {@link Rule}.
+ */
+public final class RuleTest {
 
     private static final Token X = placeholder("X");
     private static final Token Y = placeholder("Y");
     
     @Test
-    public void parseSimpleRuleA() {
+    public void fromStringShouldPassSimplestRule() {
         // A simple string parses successfully.
         assertEquals(
                 new Rule(
@@ -27,7 +30,7 @@ public class RuleTest {
     }
 
     @Test
-    public void parseSimpleRuleB() {
+    public void fromStringShouldPassSimpleRule() {
         // A simple string parses successfully.
         assertEquals(
                 new Rule(
@@ -37,7 +40,7 @@ public class RuleTest {
     }
     
     @Test
-    public void parseWithPlaceholders() {
+    public void fromStringShouldParsePlaceholders() {
         // A rule with placeholders parses successfully.
         assertEquals(
                 new Rule(
@@ -47,7 +50,7 @@ public class RuleTest {
     }
     
     @Test
-    public void parseWithFunctions() {
+    public void fromStringShouldParseFunctions() {
         // A rule with functions parses successfully.
         assertEquals(
                 new Rule(
@@ -57,7 +60,7 @@ public class RuleTest {
     }
     
     @Test
-    public void parsingsFor() {
+    public void parsingsForShouldHandlePlaceholders() {
         Rule rule = Rule.fromString("X after Y = Y X");
         assertEquals(
                 ImmutableSet.of(ImmutableMap.of(

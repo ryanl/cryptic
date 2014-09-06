@@ -6,7 +6,7 @@ package com.ryanlothian.cryptic;
 public final class CrypticMain {
 
 	public static void main(String[] args) {
-		
+		// TODO: Implement this.
 	}
 
 }

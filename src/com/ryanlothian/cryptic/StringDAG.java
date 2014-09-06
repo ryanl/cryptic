@@ -19,14 +19,14 @@ import com.google.common.collect.ImmutableMap;
  */
 @Immutable
 public final class StringDAG {
-    private final ImmutableMap<String, StringDAG> transitions;
-    private final boolean terminalNode;
+    public final ImmutableMap<String, StringDAG> transitions;
+    public final boolean terminalNode;
     
     public static StringDAG terminalNode() { 
         return new StringDAG(true, Collections.<String, StringDAG>emptyMap());
     }
     
-    private StringDAG(boolean terminalNode, Map<String, StringDAG> transitions) {
+    public StringDAG(boolean terminalNode, Map<String, StringDAG> transitions) {
         this.terminalNode = terminalNode;
         this.transitions = ImmutableMap.copyOf(transitions);
         // TODO: Make certain that no transition is a prefix of another one

@@ -8,13 +8,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
+/**
+ * An expression of the form <tokens> = <tokens>.
+ */
+@Immutable
 public final class Rule {
-    public final List<Token> leftTokens;
-    public final List<Token> rightTokens;
+    public final ImmutableList<Token> leftTokens;
+    public final ImmutableList<Token> rightTokens;
     
     Rule(
             List<Token> leftTokens,
