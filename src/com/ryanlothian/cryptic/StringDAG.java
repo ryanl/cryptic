@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import javax.annotation.concurrent.Immutable;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 
 /**
  * Represents a directed acyclic graph where edges are labelled with strings and each vertex is labelled with
@@ -19,17 +20,64 @@ import com.google.common.collect.ImmutableMap;
  */
 @Immutable
 public final class StringDAG {
-    public final ImmutableMap<String, StringDAG> transitions;
+    
+    private static final ImmutableMultimap<String, StringDAG> EMPTY_MULTIMAP = 
+            ImmutableMultimap.of();
+    
+    public final ImmutableMultimap<String, StringDAG> transitions;
+    public final ImmutableMultimap<String, StringDAG> anagramTransitions; 
     public final boolean terminalNode;
     
-    public static StringDAG terminalNode() { 
-        return new StringDAG(true, Collections.<String, StringDAG>emptyMap());
+    /** 
+     * Returns a graph c such that c.admits(s) iff s.equals("").
+     */
+    public static StringDAG epsilon() { 
+        return new StringDAG(true, EMPTY_MULTIMAP, EMPTY_MULTIMAP);
     }
     
-    public StringDAG(boolean terminalNode, Map<String, StringDAG> transitions) {
+    /** 
+     * Returns a graph c such that c.admits(t) iff s.equals(t).
+     */
+    public static StringDAG oneString(String s) { 
+        return new StringDAG(
+                false,
+                ImmutableMultimap.of(s, epsilon()),
+                EMPTY_MULTIMAP);
+    }
+    
+    /** 
+     * Returns a graph for which {@link StringDAG#admits(String)} always returns false.
+     */
+    public static StringDAG emptySet() {
+        return new StringDAG(false, EMPTY_MULTIMAP, EMPTY_MULTIMAP);
+    }
+    
+    /**
+     * Creates a StringDAG c such that c.admits(s) iff there exist strings s1, s2 such that
+     * s = s1 + s2 and a.admits(s1) and b.admits(s2).
+     */
+    public static concat(StringDAG a, StringDAG b) {
+        // TODO
+    }
+    
+    public static prependAnagramEdge(String letters, StringDAG successor) {
+        transitions = ImmutableMultimap.of();
+        anagramTransitions = ImmutableMultimap.of(letters, successor);
+    }
+    
+    public static union(StringDAG a, StringDAG b) {
+        
+        transitions = ImmutableMultimap.of();
+        anagramTransitions = ImmutableMultimap.of(letters, successor);
+    }
+    
+    public StringDAG(
+            boolean terminalNode, 
+            ImmutableMultimap<String, StringDAG> transitions,
+            ImmutableMultimap<String, StringDAG> anagramTransitions) {
         this.terminalNode = terminalNode;
-        this.transitions = ImmutableMap.copyOf(transitions);
-        // TODO: Make certain that no transition is a prefix of another one
+        this.transitions = ImmutableMultimap.copyOf((transitions);
+        this.anagramTransitions = ImmutableMultimap.copyOf(anagramTransitions);
     }
     
     /** 

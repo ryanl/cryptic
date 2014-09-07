@@ -98,7 +98,7 @@ public final class Rule {
      * Returns a set of mappings from placeholder -> value consumed by that placeholder.
      */
     public static Set<Map<Token, String>> parsingsFor(List<Token> lhsTokens, String clue) {
-        // TODO: This might not be the best way to do things
+        // TODO: Make this take a word list instead of a string
         clue = clue.trim();
         
         // Optimization: all literals must be present. If not, you can bail out early.

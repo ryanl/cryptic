@@ -54,7 +54,7 @@ public final class CrypticSolver {
     /** Returns a set of possible solutions to a traditional non-cryptic crossword clue. */
     private Set<String> solveNonCryptic(List<String> definition) {
         // For now we just use the thesaurus.
-        Set<String> solutions = new HashSet<>(thesaurus.getSynonyms(join("", definition)));
+        Set<String> solutions = new HashSet<>(thesaurus.getSynonyms(Util.join("", definition)));
         solutions.remove(definition);
         return solutions;
     }
@@ -106,20 +106,6 @@ public final class CrypticSolver {
             }
         }
         return words;
-    }
-
-	/** Equivalent to separator.join(parts) in Python. */ 
-    private static String join(String separator, List<String> parts) {
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for (String s : parts) {
-            if (!first) {
-                sb.append(separator);
-            }
-            first = false;
-            sb.append(s);
-        }
-        return sb.toString();
     }
     
 }
