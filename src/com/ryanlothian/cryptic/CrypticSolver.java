@@ -31,7 +31,7 @@ public final class CrypticSolver {
 		// Try each position for splitting the clue into two parts: definition | cryptic.
         // TODO: This assumes definition : cryptic, but sometimes we get
         // cryptic : definition.
-		for (int splitPoint = 0; splitPoint < words.size(); splitPoint++) {
+		for (int splitPoint = 1; splitPoint < words.size(); splitPoint++) {
 
 		    // The definition consists of all words before that point.
 			List<String> definition = words.subList(0, splitPoint);
@@ -43,32 +43,26 @@ public final class CrypticSolver {
 			Set<String> solutionsForDefinition = solveNonCryptic(definition);
 			
 			// Find all solutions to the cryptic part.
-			StringDAG solutionsForCryptic = solveCrypticHalf(crypticPart);
+			StringSet solutionsForCryptic = solveCrypticHalf(crypticPart);
 			
 			// Solutions that match both.
-			result.addAll(intersect(solutionsForDefinition, solutionsForCryptic));
+			for (String s : solutionsForDefinition) {
+			    if (solutionsForCryptic.admits(s)) {
+			        result.add(s);
+			    }
+			}
 		}
 		return result;
 	}
 	
     /** Returns a set of possible solutions to a traditional non-cryptic crossword clue. */
-    private Set<String> solveNonCryptic(List<String> definition) {
+    public Set<String> solveNonCryptic(List<String> definition) {
         // For now we just use the thesaurus.
         Set<String> solutions = new HashSet<>(thesaurus.getSynonyms(Util.join("", definition)));
         solutions.remove(definition);
         return solutions;
     }
-    
-    private static Set<String> intersect(Set<String> a, StringDAG b) {
-        HashSet<String> result = new HashSet<>();
-        for (String s : a) {
-            if (b.admits(s)) {
-                result.add(s);
-            }
-        }
-        return result;
-    }
-    
+        
     private static Set<String> filterByStringLength(int length, Set<String> strings) {
         Set<String> wordsOfRequestedLength = new HashSet<>();
         for (String s : strings) {
@@ -80,8 +74,8 @@ public final class CrypticSolver {
     }
     
 	/** Solve the cryptic half of a cryptic crossword clue. */   
-    private StringSet solveCrypticHalf(List<String> clue) {
-        return grammar.findAllSolutions(words);
+    private StringSet solveCrypticHalf(List<String> clueWords) {
+        return grammar.findAllSolutions(clueWords);
     }
     
     /** Returns lower case words from the given string. Punctuation and non-alphabet characters are ignored. */ 

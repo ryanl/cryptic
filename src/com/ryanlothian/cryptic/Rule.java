@@ -47,7 +47,7 @@ public final class Rule {
                 tokens.add(Token.placeholder(String.valueOf(c)));
             } else if (c == '=') {
                 if (!left) {
-                    throw new IllegalArgumentException("Too many equals");
+                    throw new IllegalArgumentException("Too many equals: " + rule);
                 }
                 tokens = rightTokens;
                 left = false;

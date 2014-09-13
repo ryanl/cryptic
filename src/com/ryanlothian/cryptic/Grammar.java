@@ -18,6 +18,8 @@ import com.ryanlothian.cryptic.Token.TokenType;
 @Immutable
 public final class Grammar {
 
+    private static final StringSet SET_OF_EMPTY_STRING_ONLY = StringSets.oneString("");
+    
     public final ImmutableList<Rule> rules;
     public final Thesaurus thesaurus;
 
@@ -28,13 +30,16 @@ public final class Grammar {
 
     public StringSet findAllSolutions(List<String> words) {
         StringSet[] solutionsStartingAt = new StringSet[words.size() + 1];
-        solutionsStartingAt[words.size()] = StringSet.oneString("");
+        solutionsStartingAt[words.size()] = StringSets.oneString("");
 
         // Work backwards through the list of words.
         // TODO: change this to work forward
         for (int i = words.size() - 1; i >= 0; i--) {
-            List<StringSet> resultsForAllJ = Lists.newArrayList();
+      
+            // results[i] = union over all j of (words[i:j] (+) results[j])
+            // where (+) is string set concatenation (effectively cartesian product).
             
+            List<StringSet> resultsForAllJ = Lists.newArrayList();
             for (int j = i + 1; j <= words.size(); j++) {
                 List<String> sublist = words.subList(i, j);
                 String joinedList = Util.join(" ", sublist);
@@ -44,19 +49,19 @@ public final class Grammar {
                 // TODO: The thesaurus will also return the word itself. Should
                 // we disallow that? Maybe there should be a boolean parameter to
                 // this method that says whether or not to allow it. We probably want
-                // to allow when we have recursed but not at top level.
+                // to allow when we have recursed but  not at top level.
                 for (String synonym : this.thesaurus.getSynonyms(joinedList)) {
-                    results.add(StringSet.oneString(synonym.replace(" ", "")));
+                    results.add(StringSets.oneString(synonym.replace(" ", "")));
                 }
 
                 for (Rule rule : this.rules) {
                     results.addAll(ruleAppliedToWords(rule, sublist, joinedList));
                 }
-                resultsForAllJ.add(StringSet.concat(
-                        StringSet.union(results),
+                resultsForAllJ.add(StringSets.concat(
+                        StringSets.union(results),
                         solutionsStartingAt[j]));
             }
-            solutionsStartingAt[i] = StringSet.union(resultsForAllJ);
+            solutionsStartingAt[i] = StringSets.union(resultsForAllJ);
         }
 
         return solutionsStartingAt[0];
@@ -88,20 +93,20 @@ public final class Grammar {
             // We have meanings for tokens. Now we need to order them correctly,
             // Apply functions, and add any literals that are on the r.h.s. of the rules.
          
-            StringSet strings = StringSet.epsilon();
+            StringSet strings = SET_OF_EMPTY_STRING_ONLY;
             for (Token token : rule.rightTokens) {
                 StringSet stringsForToken;
                 if (token.type == TokenType.LITERAL) {
-                    stringsForToken = StringSet.oneString(token.literal);
+                    stringsForToken = StringSets.oneString(token.literal);
                 } else if (token.type == TokenType.FUNCTION) {
                     // TODO: Support functions
-                    stringsForToken = StringSet.emptySet();
+                    stringsForToken = StringSets.emptySet();
                 } else if (token.type == TokenType.PLACEHOLDER) {
                     stringsForToken = solutionsForToken.get(token);
                 } else {
                     throw new IllegalArgumentException("Unknown token type");
                 }
-                strings = StringSet.concat(strings, stringsForToken);
+                strings = StringSets.concat(strings, stringsForToken);
             }
             results.add(strings);
         }
