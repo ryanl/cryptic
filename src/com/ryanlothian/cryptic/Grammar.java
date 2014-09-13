@@ -2,18 +2,14 @@ package com.ryanlothian.cryptic;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.ryanlothian.cryptic.Token.TokenType;
@@ -30,67 +26,58 @@ public final class Grammar {
         this.thesaurus = checkNotNull(thesaurus);
     }
 
-    public StringDAG findAllSolutions(List<String> words) {
-        Set<String> solutions = new HashSet<>();
-
-        StringDAG[] graphForStartingAt = new StringDAG[words.size() + 1];
-        graphForStartingAt[words.size()] = StringDAG.acceptingOnlyEpsilon();
+    public StringSet findAllSolutions(List<String> words) {
+        StringSet[] solutionsStartingAt = new StringSet[words.size() + 1];
+        solutionsStartingAt[words.size()] = StringSet.oneString("");
 
         // Work backwards through the list of words.
+        // TODO: change this to work forward
         for (int i = words.size() - 1; i >= 0; i--) {
+            List<StringSet> resultsForAllJ = Lists.newArrayList();
+            
             for (int j = i + 1; j <= words.size(); j++) {
                 List<String> sublist = words.subList(i, j);
-                StringDAG trailingDAG = graphForStartingAt[j];
                 String joinedList = Util.join(" ", sublist);
-
-                // This sublist must match a thesaurus entry or a rule exactly.
-
-                Map<String, StringDAG> edges = new HashMap<String, StringDAG>();
+                
+                List<StringSet> results = Lists.newArrayList();
 
                 // TODO: The thesaurus will also return the word itself. Should
-                // we
-                // disallow that? Maybe there should be a boolean parameter to
-                // this
-                // method that says whether or not to allow it. We probably want
-                // to
-                // allow when we have recursed but not at top level.
+                // we disallow that? Maybe there should be a boolean parameter to
+                // this method that says whether or not to allow it. We probably want
+                // to allow when we have recursed but not at top level.
                 for (String synonym : this.thesaurus.getSynonyms(joinedList)) {
-                    edges.put(synonym.replace(" ", ""), trailingDAG);
+                    results.add(StringSet.oneString(synonym.replace(" ", "")));
                 }
 
                 for (Rule rule : this.rules) {
-                    StringDAG newDAG = getStringDAGForRuleAppliedToWords(rule,
-                            sublist, trailingDAG, joinedList);
+                    results.addAll(ruleAppliedToWords(rule, sublist, joinedList));
                 }
+                resultsForAllJ.add(StringSet.concat(
+                        StringSet.union(results),
+                        solutionsStartingAt[j]));
             }
+            solutionsStartingAt[i] = StringSet.union(resultsForAllJ);
         }
 
-        // TODO
-        return null;
+        return solutionsStartingAt[0];
     }
 
-    private StringDAG getStringDAGForRuleAppliedToWords(
-            Rule rule,
-            List<String> sublist,
-            StringDAG trailingDAG,
-            String joinedList) {
-        
-        // Find all ways of parsing the given rule.
+    // Result is really the union of the retval but we optimize by not doing the union yet.
+    private List<StringSet> ruleAppliedToWords(Rule rule, List<String> sublist, String joinedList) {
+        // We find all ways of parsing the given rule.
         // e.g. if the clue is "dog after cat after mouse" and the rule is
         // "X after Y = X Y", then there are two parsings:
         // X = dog after cat, Y = mouse
         // X = dog, Y = cat after mouse
         
-        Set<Map<Token, String>> parsings = 
-                 Rule.parsingsFor(rule.leftTokens, joinedList);
-        
+        List<StringSet> results = Lists.newArrayList();
         // For each parsing...
-        for (Map<Token, String> parsing : parsings) {
+        for (Map<Token, String> parsing : Rule.parsingsFor(rule.leftTokens, joinedList)) {
             
             // Recursively solve the token values (because the solution to a clue can
             // require the nested rules/expressions).
             // For each token we end up with all possible meanings of that token.
-            Map<Token, StringDAG> solutionsForToken = new HashMap<>();
+            Map<Token, StringSet> solutionsForToken = new HashMap<>();
             for (Entry<Token, String> tokenValue : parsing.entrySet()) {
                 solutionsForToken.put(
                         tokenValue.getKey(),
@@ -98,19 +85,26 @@ public final class Grammar {
                                 Arrays.asList(tokenValue.getValue().split(" "))));
             }
             
-            // Build up the appropriate DAG.
-            StringDAG currentDAG = trailingDAG;
-            List<StringDAG> dagsToJoin = new ArrayList<>();
-            for (Token token : Lists.reverse(rule.rightTokens)) {
+            // We have meanings for tokens. Now we need to order them correctly,
+            // Apply functions, and add any literals that are on the r.h.s. of the rules.
+         
+            StringSet strings = StringSet.epsilon();
+            for (Token token : rule.rightTokens) {
+                StringSet stringsForToken;
                 if (token.type == TokenType.LITERAL) {
-                    dagsToJoin.add(StringDAG.oneString(token.literal));
+                    stringsForToken = StringSet.oneString(token.literal);
                 } else if (token.type == TokenType.FUNCTION) {
                     // TODO: Support functions
-                    dagsToJoin.add(StringDAG.epsilon());
+                    stringsForToken = StringSet.emptySet();
                 } else if (token.type == TokenType.PLACEHOLDER) {
-                    dagsToJoin.add(solutionsForToken.get(token));
+                    stringsForToken = solutionsForToken.get(token);
+                } else {
+                    throw new IllegalArgumentException("Unknown token type");
                 }
+                strings = StringSet.concat(strings, stringsForToken);
             }
+            results.add(strings);
         }
+        return results;
     }
 }

@@ -21,6 +21,11 @@ public final class Thesaurus {
     
     private final ImmutableMultimap<String, ImmutableList<String>> words;
 
+    /** An empty thesaurus. */
+    public static Thesaurus of() {
+        return new Thesaurus(ImmutableList.<List<String>>of());
+    }
+    
     /** 
      * Creates a thesaurus from an input stream.
      * 

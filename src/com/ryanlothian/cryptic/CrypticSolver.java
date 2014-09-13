@@ -80,13 +80,8 @@ public final class CrypticSolver {
     }
     
 	/** Solve the cryptic half of a cryptic crossword clue. */   
-    private StringDAG solveCrypticHalf(List<String> clue) {
-        for (String word : clue) {
-            this.thesaurus.getSynonyms(word);
-        }
-        // TODO: Implement this
-        // for (Rule rule : )
-        return StringDAG.terminalNode();
+    private StringSet solveCrypticHalf(List<String> clue) {
+        return grammar.findAllSolutions(words);
     }
     
     /** Returns lower case words from the given string. Punctuation and non-alphabet characters are ignored. */ 
