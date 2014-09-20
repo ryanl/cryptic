@@ -3,6 +3,8 @@ package com.ryanlothian.cryptic;
 
 public interface StringSet {
     boolean admits(String s);
+    
+    //StringSet without(StringSet b);
 }
  
 //    /** 
